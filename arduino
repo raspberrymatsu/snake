@@ -1,22 +1,21 @@
 #include <Keypad.h>
-byte rows[4] = {2, 3, 4, 5};
-byte columns[4] = {6, 7, 8, 9};
+byte a[4] = {2, 3, 4, 5};
+byte b[4] = {6, 7, 8, 9};
 char keys[4][4] = {
   '1', '2', '3', 'A',
   '4', '5', '6', 'B',
   '7', '8', '9', 'C',
   '*', '0', '#', 'D'
 };
-Keypad mykeypad = Keypad( makeKeymap(keys), rows, columns, 4, 4);
+Keypad thekeypad = Keypad( makeKeymap(keys), a, b, 4, 4);
 void setup() {
- Serial.begin(9600);
+  Serial.begin(9600);
 }
 
 void loop() {
- char key = mykeypad.getKey();
+  char key = thekeypad.getKey();
   if (key != NO_KEY) {
     Serial.write(key);
-    delay(10);
+    delay(20);
   }
-
 }
