@@ -1,0 +1,176 @@
+backgroundColor = #FFF0F5 ;
+
+//the snake
+int w = 20;
+int h = 20;
+int snakeLength = 2;
+int snakeHeadX;
+int snakeHeadY;
+char snakeDirection = 'R';
+int maxSnakeLength = 400;
+
+int[] x = new int[maxSnakeLength];
+int[] y = new int[maxSnakeLength];
+
+//the food
+boolean foodKey = true;
+int foodX;
+int foodY;
+int bestScore = snakeLength;
+boolean gameOverKey = false;
+
+import processing.serial.*;
+Serial port;
+float val;
+
+void setup() {
+  String arduinoPort = Serial.list()[0];
+  port = new Serial(this, arduinoPort, 9600);
+  size(500, 500);
+  frameRate(7);
+  noStroke();
+}
+
+void draw() {
+  listenGameOver();
+  if ( isSnakeDie() ) {
+    return;
+  }
+
+  background(backgroundColor);
+
+  if (port.available() > 0) {
+    val = (int)port.read();
+    if (val=='4') {
+      if (snakeDirection != 'R') {
+        snakeDirection = 'L';
+      }
+    }
+    if (val=='6') {
+      if (snakeDirection != 'L') {
+        snakeDirection = 'R';
+      }
+    }
+    if (val=='8') {
+      if (snakeDirection != 'U') {
+        snakeDirection = 'D';
+      }
+    }
+    if (val=='2') {
+      if (snakeDirection != 'D') {
+        snakeDirection = 'U';
+      }
+    }
+  }
+
+  switch(snakeDirection) {
+  case 'L':
+    snakeHeadX -= w;
+    break;
+  case 'R':
+    snakeHeadX += w;
+    break;
+  case 'D':
+    snakeHeadY += w;
+    break;
+  case 'U':
+    snakeHeadY -= w;
+    break;
+  }
+
+  drawFood(width, height);
+  drawSnake();
+
+  if ( snakeHeadX == foodX && snakeHeadY == foodY ) {
+    snakeLength++;
+    foodKey = true;
+  }
+}
+
+void snakeInit() {
+  snakeLength = 2;
+  gameOverKey = false;
+  snakeHeadX = 0;
+  snakeHeadY = 0;
+  snakeDirection = 'R';
+}
+
+void drawSnake() {
+  for (int i=snakeLength-1; i>0; i--) {
+    x[i] = x[i-1];
+    y[i] = y[i-1];
+  }
+
+  y[0] = snakeHeadY;
+  x[0] = snakeHeadX;
+
+  fill(205, 38, 38);
+
+  for (int i=0; i<snakeLength; i++) {
+    rect(x[i], y[i], w, h);
+  }
+}
+
+void drawFood(int maxWidth, int maxHeight) {
+  float x, y, z;
+  x = random(255);
+  y = random(255);
+  z = random(255);
+  fill(x, y, z);
+  if ( foodKey ) {
+    foodX = int( random(0, maxWidth)/w  ) * w;
+    foodY = int( random(0, maxHeight)/h ) * h;
+  }
+
+  rect(foodX, foodY, w, h);
+  foodKey = false;
+}
+
+void listenGameOver() {
+  if ( gameOverKey && keyPressed && (key == 'r' || key == 'R') ) {
+    snakeInit();
+  }
+}
+
+void showGameOver() {
+  pushMatrix();
+
+  gameOverKey = true;
+  bestScore = bestScore > snakeLength ? bestScore : snakeLength;
+
+  background(255, 192, 203);
+  translate( width/2, height/2 - 50);
+  fill(255);
+  textAlign(CENTER);
+  textSize(84);
+  text(snakeLength + " / " + bestScore, 0, 180);
+
+  fill(238, 99, 99);
+  textSize(80);
+  text("Game Over", 0, 0);
+
+  fill(120);
+  textSize(18);
+  text("score / best", 0, 230);
+  text("press 'R' to restart.", 0, 260);
+
+  popMatrix();
+}
+
+boolean isSnakeDie() {
+  if ( snakeHeadX < 0 || snakeHeadX >= width || snakeHeadY < 0 || snakeHeadY >= height) {
+    showGameOver();
+    return true;
+  }
+
+  if ( snakeLength > 2 ) {
+    for ( int i=1; i<snakeLength; i++ ) {
+      if ( snakeHeadX == x[i] && snakeHeadY == y[i] ) {
+        showGameOver();
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
