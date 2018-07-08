@@ -1,4 +1,4 @@
-backgroundColor = #FFF0F5 ;
+int backgroundColor = #FFF0F5 ;
 
 //the snake
 int w = 20;
